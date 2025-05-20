@@ -136,7 +136,7 @@ function renderTable() {
     `;
     tableBody.appendChild(friendlySummaryRow);
 
-    const percentFriendly = totalPrice > 0 ? (friendlyTotalPrice / totalPrice) * 100 : 0;
+    const percentFriendly = totalPrice > 0 ? (friendlyTotalQty / totalQty) * 100 : 0;
     const percentRow = document.createElement('tr');
     percentRow.style.fontWeight = 'bold';
     percentRow.style.backgroundColor = '#dceefb';
