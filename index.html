@@ -37,7 +37,7 @@
       <header>
         <label for="month-select">เลือกเดือน:</label>
         <input type="month" id="month-select" />
-        <button id="export-excel-btn">Export Excel</button>
+        
       </header>
 
       <div class="card">
@@ -48,7 +48,7 @@
           <input type="text" id="item-unit" placeholder="หน่วยนับ" required />
           <input type="number" id="item-price" placeholder="ราคาต่อหน่วย" required />
           <label><input type="checkbox" id="item-friendly" /> เป็นมิตร</label>
-          <button type="submit">+ เพิ่มรายการ</button>
+          <button type="submit" class="custom-button">+ เพิ่มรายการ</button>
         </form>
       </div>
       <div class="table-container">
@@ -68,7 +68,9 @@
             <!-- Rows will be added dynamically -->
           </tbody>
         </table>
+        
       </div>
+      <button id="export-excel-btn" class="export-btn">📤 Export Excel</button>
     </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>

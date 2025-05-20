@@ -103,7 +103,7 @@ function renderTable() {
         <td>${formatNumber(itemTotal)}</td>
         <td>${item.friendly ? '✔️' : ''}</td>
         <td>
-          <button onclick="enableEdit(${index})">แก้ไข</button>
+          <button onclick="enableEdit(${index} )">แก้ไข</button>
           <button onclick="deleteItem(${index})">ลบ</button>
         </td>
       `;
@@ -213,7 +213,7 @@ form.addEventListener('submit', async(e) => {
   const month = monthSelect.value;
 
   if (!month || !selectedDepartment || selectedDepartment === 'รวมทุกหน่วยงาน') {
-    alert('กรุณาเลือกเดือนและหน่วยงาน (ไม่รวม "รวมทุกหน่วยงาน") ก่อนเพิ่มรายการ');
+    alert('กรุณาเลือกเดือน และ หน่วยงาน (ไม่รวม "รวมทุกหน่วยงาน") ก่อนเพิ่มรายการ');
     return;
   }
 
