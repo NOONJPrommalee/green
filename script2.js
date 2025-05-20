@@ -260,3 +260,32 @@ async function loadData() {
 }
 
 loadData();
+
+document.getElementById('export-excel-btn').addEventListener('click', () => {
+  const selectedMonth = monthSelect.value;
+  const dataToExport = purchaseList.filter(item =>
+    item.month === selectedMonth &&
+    (selectedDepartment === 'รวมทุกหน่วยงาน' || item.department === selectedDepartment)
+  ).map(item => ({
+    'ชื่อรายการ': item.name,
+    'จำนวน': item.qty,
+    'หน่วย': item.unit,
+    'ราคาต่อหน่วย': item.price,
+    'ราคารวม': item.qty * item.price,
+    'เป็นมิตร': item.friendly ? '✔️' : '',
+    'เดือน': item.month,
+    'หน่วยงาน': item.department
+  }));
+
+  if (dataToExport.length === 0) {
+    alert('ไม่มีข้อมูลที่จะแปลงเป็น Excel');
+    return;
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Purchases');
+
+  const filename = `purchases_${selectedDepartment}_${selectedMonth}.xlsx`;
+  XLSX.writeFile(workbook, filename);
+});
