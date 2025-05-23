@@ -159,7 +159,7 @@ function cancelEdit() {
   renderTable();
 }
 
-function saveEdit(index) {
+async function saveEdit(index) {
   const name = document.getElementById('edit-name').value;
   const qty = parseFloat(document.getElementById('edit-qty').value);
   const unit = document.getElementById('edit-unit').value;
@@ -167,25 +167,64 @@ function saveEdit(index) {
   const friendly = document.getElementById('edit-friendly').checked;
 
   const selectedMonth = monthSelect.value;
-  const visibleItems = purchaseList.filter(item => item.month === selectedMonth && (selectedDepartment === 'รวมทุกหน่วยงาน' || item.department === selectedDepartment));
+  const visibleItems = purchaseList.filter(item => 
+    item.month === selectedMonth && 
+    (selectedDepartment === 'รวมทุกหน่วยงาน' || item.department === selectedDepartment)
+  );
+
   const itemToEdit = visibleItems[index];
   const realIndex = purchaseList.findIndex(
     i => i.name === itemToEdit.name &&
-        i.qty === itemToEdit.qty &&
-i.unit === itemToEdit.unit &&
-i.price === itemToEdit.price &&
-i.month === itemToEdit.month &&
-i.department === itemToEdit.department
+         i.qty === itemToEdit.qty &&
+         i.unit === itemToEdit.unit &&
+         i.price === itemToEdit.price &&
+         i.month === itemToEdit.month &&
+         i.department === itemToEdit.department
   );
 
   if (realIndex !== -1) {
-    purchaseList[realIndex] = { ...purchaseList[realIndex], name, qty, unit, price, friendly };
+    // อัปเดตข้อมูลใน Supabase
+    const { error } = await supabaseClient
+      .from('purchases')
+      .update({
+        name,
+        qty,
+        unit,
+        price,
+        friendly
+      })
+      .match({
+        name: itemToEdit.name,
+        qty: itemToEdit.qty,
+        unit: itemToEdit.unit,
+        price: itemToEdit.price,
+        month: itemToEdit.month,
+        department: itemToEdit.department
+      });
+
+    if (error) {
+      console.error('เกิดข้อผิดพลาดในการอัปเดตข้อมูล:', error.message);
+      alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล');
+      return;
+    }
+
+    // อัปเดตข้อมูลใน local array
+    purchaseList[realIndex] = {
+      ...purchaseList[realIndex],
+      name,
+      qty,
+      unit,
+      price,
+      friendly
+    };
+
     editModeIndex = null;
     renderTable();
   }
 }
 
-function deleteItem(index) {
+
+async function deleteItem(index) {
   const selectedMonth = monthSelect.value;
   const visibleItems = purchaseList.filter(item => item.month === selectedMonth && (selectedDepartment === 'รวมทุกหน่วยงาน' || item.department === selectedDepartment));
   const itemToDelete = visibleItems[index];
@@ -197,11 +236,37 @@ function deleteItem(index) {
          i.month === itemToDelete.month &&
          i.department === itemToDelete.department
   );
+
+
+
   if (realIndex !== -1) {
+    // ลบข้อมูลจาก Supabase
+    const { error } = await supabaseClient
+      .from('purchases') // แก้ไขเป็นชื่อ table ของคุณ
+      .delete()
+      .match({
+        name: itemToDelete.name,
+        qty: itemToDelete.qty,
+        unit: itemToDelete.unit,
+        price: itemToDelete.price,
+        month: itemToDelete.month,
+        department: itemToDelete.department
+      });
+
+    if (error) {
+      console.error('Error deleting item:', error.message);
+      alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+      return;
+    }
+
+    // ลบข้อมูลจาก local array
     purchaseList.splice(realIndex, 1);
     renderTable();
   }
 }
+
+
+
 
 form.addEventListener('submit', async(e) => {
   e.preventDefault();
