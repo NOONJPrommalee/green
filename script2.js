@@ -10,6 +10,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let purchaseList = [];
 let selectedDepartment = null;
 let editModeIndex = null;
+let pieChart, monthlyBarChart, departmentBarChart;
 
 
 function formatNumber(num) {
@@ -324,8 +325,7 @@ async function loadData() {
   }
 }
 
-loadData();
-
+// excel
 document.getElementById('export-excel-btn').addEventListener('click', () => {
   const selectedMonth = monthSelect.value;
   const dataToExport = purchaseList.filter(item =>
@@ -354,3 +354,7 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
   const filename = `purchases_${selectedDepartment}_${selectedMonth}.xlsx`;
   XLSX.writeFile(workbook, filename);
 });
+
+loadData();
+
+

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+    body {
+      font-family: 'kanit', sans-serif;
+      margin: 30px 40px; /* เว้นขอบบนล่าง 30px ซ้ายขวา 40px */
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+    .filters {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .filters label {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    select#yearSelect {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .card-container {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .card {
+      flex: 1 1 200px; /* ขยายเต็มพื้นที่แต่ไม่เกิน 200px */
+      background: #fff;
+      padding: 20px 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-align: center;
+      color: #2c3e50;
+      user-select: none;
+      min-width: 180px;
+    }
+
+    
+
+    @media (max-width: 600px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      .card-container {
+        flex-direction: column;
+      }
+      .card {
+        min-width: auto;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 รายงานสรุปรายการจัดซื้ออุปกรณ์ภายในสำนักงาน</h1>
+    <div class="filters">
+      <label for="yearSelect">ปี:</label>
+      <select id="yearSelect">
+        <option value="">ทั้งหมด</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card-container">
+  <div class="card" id="totalItems">🧾 จำนวนทั้งหมด</div>
+  <div class="card" id="friendlyItems">🌱 เป็นมิตร</div>
+  <div class="card" id="unfriendlyItems">⚠️ ไม่เป็นมิตร</div>
+  <div class="card" id="friendlyPercentOverall">📊 % เป็นมิตร</div>
+</div>
+
+  <canvas id="myChart" height="100"></canvas>
+  <script src="db.js"></script>
+</body>
+</html>
