@@ -7,12 +7,31 @@ const yearSelect = document.getElementById('yearSelect');
 
 let chartInstance = null;
 
+// 1. Map หน่วยงานชื่อเต็ม → ตัวย่อ
+const deptAbbrMap = {
+  '📦กองเทคโนโลยีดิจิทัลและการสื่อสาร (กดส.)': '📦กดส.',
+  '📦กองสนับสนุนงานเขต (กสข.)': '📦กสข.',
+  '📦กองวิศวกรรมและวางแผน (กวว.)': '📦กวว.',
+  '📦กองก่อสร้างระบบไฟฟ้าและงานโยธา (กรย.)': '📦กรย.',
+  '📦กองบริการลูกค้า (กบล.)': '📦กบล.',
+  '📦กองบริหารพัสดุ (กบพ.)': '📦กบพ.',
+  '📦กองบัญชีและเศรษฐกิจพลังงานไฟฟ้า (กบฟ.)': '📦กบฟ.',
+  '📦กองปฏิบัติการ (กปบ.)': '📦กปบ.',
+  '📦กองบำรุงรักษาระบบไฟฟ้า (กบษ.)': '📦กบษ.',
+  '📦กองบำรุงรักษาสถานีไฟฟ้า (กสฟ.)': '📦กสฟ.',
+  '🏢ฝ่ายวิศวกรรมและบริการ (ฝวบ.)':'🏢ฝวบ.',
+  '🏢ฝ่ายสนับสนุนการบริหารงาน (ฝสบ.)':'🏢ฝสบ.',
+  '🏢ฝ่ายปฏิบัติการและบำรุงรักษา (ฝปบ.)':'🏢ฝปบ.'
+};
+
 async function loadChart() {
   const { data, error } = await supabaseClient.from('purchases').select('*');
   if (error) {
     console.error(error);
     return;
   }
+
+
 
   // ดึงเฉพาะปี
   if (!window.yearsLoaded) {
@@ -65,56 +84,90 @@ const percentFriendlyOverall = totalItems
 document.getElementById('totalItems').textContent =
   `🧾 จัดซื้อทั้งหมด : ${totalItems.toLocaleString()} รายการ`;
 document.getElementById('friendlyItems').textContent =
-  `🌱 เป็นมิตร: ${friendlyItems.toLocaleString()} รายการ`;
+  `🌱 เป็นมิตร : ${friendlyItems.toLocaleString()} รายการ`;
 document.getElementById('unfriendlyItems').textContent =
-  `⚠️ ไม่เป็นมิตร: ${unfriendlyItems.toLocaleString()} รายการ`;
+  `⚠️ ไม่เป็นมิตร : ${unfriendlyItems.toLocaleString()} รายการ`;
 document.getElementById('friendlyPercentOverall').textContent =
-  `📊 % เป็นมิตร กฟฉ.2: ${parseFloat(percentFriendlyOverall).toLocaleString()}%`;
+  `📊 % เป็นมิตร : ${parseFloat(percentFriendlyOverall).toLocaleString()}%`;
 
 
 
-  const labels = Object.keys(totalByDept);
-  const totalData = labels.map(dept => totalByDept[dept]);
-  const friendlyPercent = labels.map(dept => {
+  const departments = Object.keys(totalByDept);
+  const labels = departments.map(dept => {
+  const normalizedDept = dept.trim(); // เผื่อมีช่องว่าง
+  return deptAbbrMap[normalizedDept] || normalizedDept;
+});
+
+  const friendlyPercent = departments.map(dept => {
     const total = totalByDept[dept];
     const friendly = friendlyByDept[dept] || 0;
-    return total ? ((friendly / total) * 100).toFixed(2) : 0;
+    return total ? parseFloat(((friendly / total) * 100).toFixed(2)) : 0;
+
   });
 
   if (chartInstance) {
     chartInstance.destroy();
   }
 
+  
+Chart.register(window['chartjs-plugin-annotation']);
+
   const ctx = document.getElementById('myChart').getContext('2d');
+
   chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: '% เป็นมิตร',
+        data: friendlyPercent,
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        yAxisID: 'y'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: {
         
-        {
-          label: '% เป็นมิตร',
-          data: friendlyPercent,
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          yAxisID: 'yPercent'
+        beginAtZero: true,
+        position: 'right',
+        max: 100,
+        title: {
+          display: true,
+          text: '% เป็นมิตร'
         }
-      ]
+      }
     },
-    options: {
-      scales: {
-        
-        yPercent: {
-          beginAtZero: true,
-          position: 'right',
-          max: 100,
-          title: {
-            display: true,
-            text: '% เป็นมิตร'
+    plugins: {
+      annotation: {
+        annotations: {
+          line1: {
+            type: 'line',
+            yMin: 40,
+            yMax: 40,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [6, 6],
+            label: {
+              content: 'เป้าหมาย 40%',
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'rgba(255, 0, 0, 0.6)',
+              color: 'white',
+              font: {
+                weight: 'bold'
+              }
+            }
           }
         }
       }
     }
-  });
+  }
+});
+
 }
 
 function populateYearOptions(data) {
