@@ -90,7 +90,27 @@ document.getElementById('unfriendlyItems').textContent =
 document.getElementById('friendlyPercentOverall').textContent =
   `📊 % เป็นมิตร : ${parseFloat(percentFriendlyOverall).toLocaleString()}%`;
 
+ // ⚠️ วางโค้ดสร้างตาราง **หลังจาก** totalByDept ถูกนิยาม
+  const department = Object.keys(totalByDept);
+  const tableBody = document.querySelector('#summaryTable tbody');
+  tableBody.innerHTML = ''; // เคลียร์ข้อมูลเก่า
 
+  department.forEach(dept => {
+    const total = totalByDept[dept] || 0;
+    const friendly = friendlyByDept[dept] || 0;
+    const unfriendly = total - friendly;
+    const percent = total ? ((friendly / total) * 100).toFixed(2) : '0.00';
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${deptAbbrMap[dept] || dept}</td>
+      <td style="text-align: right;">${total.toLocaleString()}</td>
+      <td style="text-align: right;">${friendly.toLocaleString()}</td>
+      <td style="text-align: right;">${unfriendly.toLocaleString()}</td>
+      <td style="text-align: right;">${percent}%</td>
+    `;
+    tableBody.appendChild(row);
+  });
 
   const departments = Object.keys(totalByDept);
   const labels = departments.map(dept => {
@@ -169,6 +189,8 @@ Chart.register(window['chartjs-plugin-annotation']);
 });
 
 }
+
+
 
 function populateYearOptions(data) {
   const years = [...new Set(data.map(row => row.month.split('-')[0]))];
