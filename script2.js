@@ -315,7 +315,7 @@ departmentList.addEventListener('click', (e) => {
 
 
 async function loadData() {
-  const { data, error } = await supabaseClient.from('purchases').select('*');
+  const { data, error } = await supabaseClient.from('purchases').select('*').limit(10000);
   if (error) {
     console.error('เกิดข้อผิดพลาด:', error);
   } else {
