@@ -10,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <!-- Annotation Plugin v1.4.0 (สำหรับ Chart.js v3) -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
@@ -89,6 +90,25 @@
       <select id="yearSelect">
         <option value="">ทั้งหมด</option>
       </select>
+
+  <label for="monthSelect">เดือน:</label>
+  <select id="monthSelect">
+    <option value="">ทั้งหมด</option>
+<option value="01">มกราคม</option>
+<option value="02">กุมภาพันธ์</option>
+<option value="03">มีนาคม</option>
+<option value="04">เมษายน</option>
+<option value="05">พฤษภาคม</option>
+<option value="06">มิถุนายน</option>
+<option value="07">กรกฎาคม</option>
+<option value="08">สิงหาคม</option>
+<option value="09">กันยายน</option>
+<option value="10">ตุลาคม</option>
+<option value="11">พฤศจิกายน</option>
+<option value="12">ธันวาคม</option>
+
+  </select>
+
     </div>
   </div>
 
@@ -116,6 +136,12 @@
     </thead>
     <tbody style="text-align: center;"></tbody>
   </table>
+</div>
+
+<!-- 🟦 กราฟภาพรวมทุกหน่วยงาน -->
+<div style="margin-top: 50px;">
+  <h2>📊 กราฟแท่งภาพรวมจำนวนรายการจัดซื้อของทุกหน่วยงาน (13 หน่วยงาน)</h2>
+  <canvas id="allDeptChart" height="120"></canvas>
 </div>
 
 

@@ -4,8 +4,13 @@ const supabaseClient = supabase.createClient(
 );
 
 const yearSelect = document.getElementById('yearSelect');
+const monthSelect = document.getElementById('monthSelect');
+
+
 
 let chartInstance = null;
+let allDeptChartInstance = null;
+let query = supabaseClient.from("purchases").select("*");
 
 // 1. Map หน่วยงานชื่อเต็ม → ตัวย่อ
 const deptAbbrMap = {
@@ -40,9 +45,19 @@ async function loadChart() {
   }
 
   const selectedYear = yearSelect.value;
-  const filtered = selectedYear
-    ? data.filter(row => row.month.startsWith(selectedYear))
-    : data;
+  const selectedMonth = monthSelect.value;
+
+// 🟢 ฟิลเตอร์ข้อมูลตามปี + เดือน
+  let filtered = data;
+
+if (selectedYear) {
+  filtered = filtered.filter(row => row.month.startsWith(selectedYear));
+}
+
+if (selectedMonth) {
+  filtered = filtered.filter(row => row.month.endsWith(selectedMonth));
+}
+
 
 const totalByDept = {};
 const friendlyByDept = {};
@@ -62,7 +77,7 @@ filtered.forEach(row => {
 
 
 
-  let totalItems = 0;
+let totalItems = 0;
 let friendlyItems = 0;
 let unfriendlyItems = 0;
 
@@ -136,6 +151,7 @@ Chart.register(window['chartjs-plugin-annotation']);
 
   chartInstance = new Chart(ctx, {
   type: 'bar',
+  plugins: [ChartDataLabels],
   data: {
     labels: labels,
     datasets: [
@@ -190,6 +206,86 @@ Chart.register(window['chartjs-plugin-annotation']);
 
 }
 
+async function loadAllDeptChart() {
+  const selectedYear = document.getElementById("yearSelect").value;
+  const selectedMonth = document.getElementById("monthSelect").value;
+
+  let query = supabaseClient.from("purchases").select("*");
+
+  // 🟢 ฟิลเตอร์ปี + เดือนแบบถูกต้อง
+  if (selectedYear && selectedMonth) {
+    query = query.eq("month", `${selectedYear}-${selectedMonth}`);
+  } 
+  else if (selectedYear) {
+    query = query.like("month", `${selectedYear}-%`);
+  } 
+  else if (selectedMonth) {
+    query = query.like("month", `%-${selectedMonth}`);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("โหลดข้อมูลรวมหน่วยงานล้มเหลว:", error);
+    return;
+  }
+
+  let totalQty = 0;
+  let friendlyQty = 0;
+  let unfriendlyQty = 0;
+
+  data.forEach(row => {
+    const qty = row.qty || 0;
+    totalQty += qty;
+
+    if (row.friendly) {
+      friendlyQty += qty;
+    } else {
+      unfriendlyQty += qty;
+    }
+  });
+
+  const percentFriendly = totalQty ? (friendlyQty / totalQty * 100).toFixed(2) : 0;
+  const percentUnfriendly = totalQty ? (unfriendlyQty / totalQty * 100).toFixed(2) : 0;
+
+  const ctx2 = document.getElementById("allDeptChart").getContext("2d");
+
+  if (window.allDeptChartInstance) {
+    window.allDeptChartInstance.destroy();
+  }
+
+  window.allDeptChartInstance = new Chart(ctx2, {
+    type: "bar",
+    plugins: [ChartDataLabels],
+    data: {
+      labels: ["เป็นมิตร", "ไม่เป็นมิตร"],
+      datasets: [
+        {
+          label: "% จากยอดรวมทั้งหมด",
+          data: [percentFriendly, percentUnfriendly],
+          backgroundColor: [
+            "rgba(75, 192, 192, 0.6)",
+            "rgba(255, 99, 132, 0.6)"
+          ]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            callback: value => value + "%"
+          }
+        }
+      }
+    }
+  });
+}
+
+
 
 
 function populateYearOptions(data) {
@@ -204,5 +300,15 @@ function populateYearOptions(data) {
   });
 }
 
-yearSelect.addEventListener('change', loadChart);
+yearSelect.addEventListener('change', () => {
+  loadChart();
+  loadAllDeptChart();   // 🔵 รีเฟรชกราฟรวม
+});
+
+monthSelect.addEventListener('change', () => {
+  loadChart();
+  loadAllDeptChart();   // 🔵 รีเฟรชกราฟรวม
+});
+
 loadChart();
+loadAllDeptChart();
