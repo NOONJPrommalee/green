@@ -11,6 +11,20 @@ let purchaseList = [];
 let selectedDepartment = null;
 let editModeIndex = null;
 let pieChart, monthlyBarChart, departmentBarChart;
+let pendingDepartment = null;
+
+function showLoginModal(departmentName) {
+
+  pendingDepartment = departmentName;
+
+  document.getElementById('login-title').textContent =
+    `เข้าสู่ ${departmentName}`;
+
+  document.getElementById('department-password').value = '';
+
+  document.getElementById('login-modal').style.display =
+    'block';
+}
 
 
 function formatNumber(num) {
@@ -192,7 +206,8 @@ async function saveEdit(index) {
         qty,
         unit,
         price,
-        friendly
+        friendly,
+        department_id: sessionStorage.getItem('departmentId')
       })
       .match({
         name: itemToEdit.name,
@@ -241,6 +256,23 @@ async function deleteItem(index) {
 
 
   if (realIndex !== -1) {
+
+    // บันทึกประวัติการลบ
+      await supabaseClient
+       .from('deleted_logs')
+      .insert([
+        {
+          item_name: itemToDelete.name,
+          qty: itemToDelete.qty,
+          unit: itemToDelete.unit,
+          price: itemToDelete.price,
+          month: itemToDelete.month,
+          department: itemToDelete.department,
+          friendly: itemToDelete.friendly
+        }
+      ]);
+
+
     // ลบข้อมูลจาก Supabase
     const { error } = await supabaseClient
       .from('purchases') // แก้ไขเป็นชื่อ table ของคุณ
@@ -251,7 +283,8 @@ async function deleteItem(index) {
         unit: itemToDelete.unit,
         price: itemToDelete.price,
         month: itemToDelete.month,
-        department: itemToDelete.department
+        department: itemToDelete.department,
+        friendly: itemToDelete.friendly
       });
 
     if (error) {
@@ -287,9 +320,21 @@ form.addEventListener('submit', async(e) => {
   form.reset();
   renderTable();
 
-  const { error } = await supabaseClient.from('purchases').insert([
-    { name, qty, unit, price, friendly, month, department: selectedDepartment }
-  ]);
+const departmentId =
+  sessionStorage.getItem('departmentId');
+
+await supabaseClient.from('purchases').insert([
+  {
+    name,
+    qty,
+    unit,
+    price,
+    friendly,
+    month,
+    department: selectedDepartment,
+    department_id: departmentId
+  }
+]);
   if (error) {
     console.error('เกิดข้อผิดพลาดในการบันทึก:', error);
   } else {
@@ -301,16 +346,17 @@ form.addEventListener('submit', async(e) => {
 monthSelect.addEventListener('change', renderTable);
 
 departmentList.addEventListener('click', (e) => {
-  if (e.target.tagName === 'LI') {
-    selectedDepartment = e.target.textContent;
 
-    Array.from(departmentList.children).forEach(li => li.classList.remove('active'));
-    e.target.classList.add('active');
+  if (e.target.tagName !== 'LI') return;
 
-    formHeader.textContent = `รายการจัดซื้อ : ${selectedDepartment}`;
+  const departmentName = e.target.textContent;
 
-    renderTable();
+  if (departmentName === 'รวมทุกหน่วยงาน') {
+    return;
   }
+
+  showLoginModal(departmentName);
+
 });
 
 
@@ -361,3 +407,67 @@ document.getElementById('export-excel-btn').addEventListener('click', () => {
 loadData();
 
 
+document
+  .getElementById('login-btn')
+  .addEventListener('click', async () => {
+
+    const password =
+      document.getElementById('department-password').value;
+
+    if (!password) {
+      alert('กรุณากรอกรหัสผ่าน');
+      return;
+    }
+
+    const { data, error } = await supabaseClient
+      .from('departments')
+      .select('*')
+      .eq('department_name', pendingDepartment)
+      .eq('password', password)
+      .single();
+
+    if (error || !data) {
+      alert('รหัสผ่านไม่ถูกต้อง');
+      return;
+    }
+
+    // Login สำเร็จ 
+    selectedDepartment = pendingDepartment;
+
+    sessionStorage.setItem(
+      'departmentId',
+      data.id
+    );
+
+    document
+      .getElementById('login-modal')
+      .style.display = 'none';
+
+    Array.from(departmentList.children)
+      .forEach(li => li.classList.remove('active'));
+
+    const selectedLi =
+      [...departmentList.children]
+      .find(li => li.textContent === selectedDepartment);
+
+    if (selectedLi) {
+      selectedLi.classList.add('active');
+    }
+
+    formHeader.textContent =
+      `รายการจัดซื้อ : ${selectedDepartment}`;
+
+    renderTable();
+});
+
+document
+  .getElementById('cancel-login-btn')
+  .addEventListener('click', () => {
+
+    document
+      .getElementById('login-modal')
+      .style.display = 'none';
+
+    pendingDepartment = null;
+
+});

@@ -74,6 +74,25 @@
       <button id="export-excel-btn" class="export-btn">📤 Export Excel</button>
     </main>
   </div>
+
+  <!-- Login Modal -->
+<div id="login-modal" class="modal">
+  <div class="modal-content">
+    <h3 id="login-title">เข้าสู่ระบบหน่วยงาน</h3>
+
+    <input
+      type="password"
+      id="department-password"
+      placeholder="กรอกรหัสผ่าน"
+    />
+
+    <div class="modal-buttons">
+      <button id="login-btn">เข้าสู่ระบบ</button>
+      <button id="cancel-login-btn">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.46.1/dist/umd/supabase.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="script2.js"></script>
